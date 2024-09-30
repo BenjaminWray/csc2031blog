@@ -13,5 +13,34 @@ def registration():
     return render_template('accounts/registration.html')
 
 
+@app.route('/login')
+def registration():
+    return render_template('accounts/login.html')
+
+
+@app.route('/account')
+def registration():
+    return render_template('accounts/account.html')
+
+
+@app.route('/posts')
+def registration():
+    return render_template('posts/posts.html')
+
+
+@app.route('/create')
+def registration():
+    return render_template('posts/create.html')
+
+
+@app.route('/update')
+def registration():
+    return render_template('posts/update.html')
+
+@app.route('/security')
+def registration():
+    return render_template('security/security.html')
+
+
 if __name__ == '__main__':
     app.run()
