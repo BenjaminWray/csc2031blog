@@ -14,31 +14,31 @@ def registration():
 
 
 @app.route('/login')
-def registration():
+def login():
     return render_template('accounts/login.html')
 
 
 @app.route('/account')
-def registration():
+def account():
     return render_template('accounts/account.html')
 
 
 @app.route('/posts')
-def registration():
+def posts():
     return render_template('posts/posts.html')
 
 
 @app.route('/create')
-def registration():
+def create():
     return render_template('posts/create.html')
 
 
 @app.route('/update')
-def registration():
+def update():
     return render_template('posts/update.html')
 
 @app.route('/security')
-def registration():
+def security():
     return render_template('security/security.html')
 
 
