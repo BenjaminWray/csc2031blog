@@ -10,6 +10,20 @@ def registration():
     form = RegistrationForm()
 
     if form.validate_on_submit():
+        if User.query.filter_by(email=form.email.data).first():
+            flash('Email already exists', category="danger")
+            return render_template('accounts/registration.html', form=form)
+
+        new_user = User(email=form.email.data,
+                        firstname=form.firstname.data,
+                        lastname=form.lastname.data,
+                        phone=form.phone.data,
+                        password=form.password.data,
+                        )
+
+        db.session.add(new_user)
+        db.session.commit()
+
         flash('Account Created', category='success')
         return redirect(url_for('accounts.login'))
 
