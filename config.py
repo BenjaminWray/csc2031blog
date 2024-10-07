@@ -16,6 +16,10 @@ app = Flask(__name__)
 # SECRET KEY FOR FLASK FORMS
 app.config['SECRET_KEY'] = secrets.token_hex(16)
 
+# reCAPTCHA KEYS
+app.config['RECAPTCHA_PUBLIC_KEY'] = '6LdgyVUqAAAAAOlpHkzRlx7dr2F0SYp3QTp5Mo96'
+app.config['RECAPTCHA_PRIVATE_KEY'] = '6LdgyVUqAAAAANmq8UrWlHqa4taLr7ZR8nJWh_Pd'
+
 # DATABASE CONFIGURATION
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///csc2031blog.db'
 app.config['SQLALCHEMY_ECHO'] = True
@@ -84,6 +88,11 @@ class User(db.Model):
         self.lastname = lastname
         self.phone = phone
         self.password = password
+
+    def verify_password(self, password):
+        if self.password == password:
+            return True
+        return False
 
 class PostView(ModelView):
     column_display_pk = True

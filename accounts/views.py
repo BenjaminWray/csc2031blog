@@ -1,5 +1,5 @@
 ﻿from flask import Blueprint, render_template, flash, redirect, url_for
-from accounts.forms import RegistrationForm
+from accounts.forms import RegistrationForm, LoginForm
 from config import User, db
 
 accounts_bp = Blueprint('accounts', __name__, template_folder='templates')
@@ -25,14 +25,26 @@ def registration():
         db.session.commit()
 
         flash('Account Created', category='success')
-        return redirect(url_for('accounts.login'))
+        return redirect(url_for('accounts.registration'))
 
     return render_template('accounts/registration.html', form=form)
 
 
-@accounts_bp.route('/login')
+@accounts_bp.route('/login', methods=['GET','POST'])
 def login():
-    return render_template('accounts/login.html')
+    form = LoginForm()
+
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        if user:
+            if user.verify_password(form.password.data):
+                flash('Login Successful', category='success')
+                return redirect(url_for('posts.posts'))
+
+        flash('Invalid Credentials', category="danger")
+        return redirect(url_for('accounts.login'))
+
+    return render_template('accounts/login.html', form=form)
 
 
 @accounts_bp.route('/account')
