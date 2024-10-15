@@ -7,11 +7,14 @@ import secrets
 
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from sqlalchemy import MetaData
 from datetime import datetime
 
 
 app = Flask(__name__)
+limiter = Limiter(get_remote_address, app=app, default_limits=['500 per day'])
 
 # SECRET KEY FOR FLASK FORMS
 app.config['SECRET_KEY'] = secrets.token_hex(16)

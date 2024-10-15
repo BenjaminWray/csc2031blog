@@ -4,7 +4,7 @@ from sqlalchemy import false
 from markupsafe import Markup
 
 from accounts.forms import RegistrationForm, LoginForm
-from config import User, db
+from config import User, db, limiter
 
 accounts_bp = Blueprint('accounts', __name__, template_folder='templates')
 max_login_attempts = 3
@@ -37,6 +37,7 @@ def registration():
 
 
 @accounts_bp.route('/login', methods=['GET','POST'])
+@limiter.limit("20 per minute")
 def login():
     form = LoginForm()
 
