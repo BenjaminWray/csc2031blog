@@ -11,38 +11,49 @@
                     <p>Please complete the following form to log into your account to use the CSC2031 Blog.</p>
                 </div>
 
-                <form method="POST">
-                    <div class="p-2 bg-light border border-primary">
-                        <div style="text-align: left">
-                            {{ form.csrf_token() }}
-                            <div>
-                                {% with messages = get_flashed_messages(with_categories=true) %}
-                                {% for category, message in messages %}
-                                <div class="alert alert-{{ category }} mt-3 alert-dismissible" role="alert">
-                                    {{ message }}. Go to <a href="{{ url_for('accounts.registration') }}">registration page</a>.
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert"
-                                            onclick=delete_flash(this)>
-                                        <span>&times;</span>
-                                    </button>
+                {% if form %}
+                    <form method="POST">
+                        <div class="p-2 bg-light border border-primary">
+                            <div style="text-align: left">
+                                {{ form.csrf_token() }}
+                                <div>
+                                    {% with messages = get_flashed_messages(with_categories=true) %}
+                                    {% for category, message in messages %}
+                                    <div class="alert alert-{{ category }} mt-3 alert-dismissible" role="alert">
+                                        {{ message }}. Go to <a href="{{ url_for('accounts.registration') }}">registration page</a>.
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" onclick=delete_flash(this)>
+                                            <span>&times;</span>
+                                        </button>
+                                    </div>
+                                    {% endfor %}
+                                    {% endwith %}
                                 </div>
-                                {% endfor %}
-                                {% endwith %}
+                                <div class="form-group">
+                                    {{ form.email.label}}<span style="color: red">*</span>
+                                    {{ form.email(class="form-control") }}
+                                    {{ form.password.label}}<span style="color: red">*</span>
+                                    {{ form.password(class="form-control") }}
+                                    {{form.recaptcha.label}}<span style="color: red">*</span>
+                                    {{ form.recaptcha(class="form-control") }}
+                                </div>
                             </div>
-
-                            <div class="form-group">
-                                {{ form.email.label}}<span style="color: red">*</span>
-                                {{ form.email(class="form-control") }}
-                                {{ form.password.label}}<span style="color: red">*</span>
-                                {{ form.password(class="form-control") }}
-                                {{form.recaptcha.label}}<span style="color: red">*</span>
-                                {{ form.recaptcha(class="form-control") }}
+                            <div>
+                                {{ form.submit(class="btn btn-success") }}
                             </div>
                         </div>
-                        <div>
-                            {{ form.submit(class="btn btn-success") }}
+                    </form>
+                {% else %}
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} mt-3 alert-dismissible" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" onclick=delete_flash(this)>
+                                <span>&times;</span>
+                            </button>
                         </div>
-                    </div>
-                </form>
+                        {% endfor %}
+                        {% endwith %}
+                {% endif %}
 
             </div>
             <div class="col-3"></div>
