@@ -1,7 +1,10 @@
 ﻿from flask import Blueprint, render_template, flash, redirect, url_for, session, get_flashed_messages
+from flask_sqlalchemy.session import Session
 from flask_wtf import FlaskForm
 from sqlalchemy import false
 from markupsafe import Markup
+import pyotp
+from wtforms.validators import NoneOf
 
 from accounts.forms import RegistrationForm, LoginForm
 from config import User, db, limiter
@@ -30,28 +33,36 @@ def registration():
         db.session.add(new_user)
         db.session.commit()
 
-        flash('Account Created', category='success')
-        return redirect(url_for('accounts.registration'))
+        flash('Account Created. You have to enable Multi-Factor Authentication first to login', category='success')
+        session["new_user"] = new_user.id
+        return redirect(url_for('accounts.mfasetup', user=new_user))
 
     return render_template('accounts/registration.html', form=form)
-
 
 @accounts_bp.route('/login', methods=['GET','POST'])
 @limiter.limit("20 per minute")
 def login():
     form = LoginForm()
 
-    if not session.get('login_attempts'):
+    if not "login_attempts" in session:
         session["login_attempts"] = 0
-
 
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user:
             if user.verify_password(form.password.data):
                 session["login_attempts"] = 0
-                flash('Login Successful', category='success')
-                return redirect(url_for('posts.posts'))
+                if user.verify_otp(form.otp.data):
+                    if not user.mfaenabled:
+                        user.mfaenabled = True
+                        db.session.commit()
+                    flash('Login Successful', category='success')
+                    return redirect(url_for('posts.posts'))
+                if not user.mfaenabled:
+                    session["new_user"] = user.id
+                    flash('MFA is not enabled. You have to enable Multi-Factor Authentication first to login', category='danger')
+                    return redirect(url_for('accounts.mfasetup'))
+
 
         session['login_attempts'] += 1
 
@@ -64,6 +75,13 @@ def login():
 
     return render_template('accounts/login.html', form=form)
 
+
+@accounts_bp.route("/mfasetup", methods=['GET', 'POST'])
+def mfasetup():
+    if "new_user" in session:
+        user = User.query.filter_by(id=session['new_user']).first()
+        return render_template('accounts/mfasetup.html', secret=user.mfakey, uri=user.uri())
+    return redirect(url_for('accounts.login'))
 
 
 @accounts_bp.route('/account')
