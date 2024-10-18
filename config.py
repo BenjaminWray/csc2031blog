@@ -4,17 +4,22 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.menu import MenuLink
 import secrets
+import pyotp
 
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask_qrcode import QRcode
 from sqlalchemy import MetaData
 from datetime import datetime
 
 
 app = Flask(__name__)
+
 limiter = Limiter(get_remote_address, app=app, default_limits=['500 per day'])
+
+qrcode = QRcode(app)
 
 # SECRET KEY FOR FLASK FORMS
 app.config['SECRET_KEY'] = secrets.token_hex(16)
@@ -27,6 +32,7 @@ app.config['RECAPTCHA_PRIVATE_KEY'] = '6LdgyVUqAAAAANmq8UrWlHqa4taLr7ZR8nJWh_Pd'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///csc2031blog.db'
 app.config['SQLALCHEMY_ECHO'] = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['FLASK_ADMIN_FLUID_LAYOUT'] = True
 
 metadata = MetaData(
     naming_convention={
@@ -82,6 +88,10 @@ class User(db.Model):
     lastname = db.Column(db.String(100), nullable=False)
     phone = db.Column(db.String(100), nullable=False)
 
+    # MFA information
+    mfakey = db.Column(db.String(100), nullable=False, default='')
+    mfaenabled = db.Column(db.Boolean, nullable=False, default=False)
+
     # User posts
     posts = db.relationship("Post", order_by=Post.id, back_populates="user")
 
@@ -91,11 +101,18 @@ class User(db.Model):
         self.lastname = lastname
         self.phone = phone
         self.password = password
+        self.mfakey = pyotp.random_base32()
+        self.mfaenabled = False
 
     def verify_password(self, password):
-        if self.password == password:
-            return True
-        return False
+        return self.password == password
+
+    def verify_otp(self, key):
+        return pyotp.TOTP(self.mfakey).verify(key)
+
+    def uri(self):
+        return str(pyotp.totp.TOTP(self.mfakey).provisioning_uri(self.email, "csc2031blog"))
+
 
 class PostView(ModelView):
     column_display_pk = True
@@ -105,7 +122,7 @@ class PostView(ModelView):
 class UserView(ModelView):
     column_display_pk = True
     column_hide_backrefs = False
-    column_list = ('id', 'email', 'password', 'firstname', 'lastname', 'phone', 'posts')
+    column_list = ('id', 'email', 'password', 'firstname', 'lastname', 'phone', 'mfakey', 'mfaenabled', 'posts')
 
 admin = Admin(app, name='DB Admin', template_mode='bootstrap4')
 admin._menu = admin._menu[1:]

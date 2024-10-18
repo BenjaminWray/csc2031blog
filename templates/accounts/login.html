@@ -29,11 +29,13 @@
                                     {% endwith %}
                                 </div>
                                 <div class="form-group">
-                                    {{ form.email.label}}<span style="color: red">*</span>
+                                    {{ form.email.label }}<span style="color: red">*</span>
                                     {{ form.email(class="form-control") }}
-                                    {{ form.password.label}}<span style="color: red">*</span>
+                                    {{ form.password.label }}<span style="color: red">*</span>
                                     {{ form.password(class="form-control") }}
-                                    {{form.recaptcha.label}}<span style="color: red">*</span>
+                                    {{ form.otp.label }}<span style="color: red">*</span>
+                                    {{ form.otp(class="form-control") }}
+                                    {{ form.recaptcha.label }}<span style="color: red">*</span>
                                     {{ form.recaptcha(class="form-control") }}
                                 </div>
                             </div>
