@@ -1,4 +1,5 @@
 ﻿from flask import Blueprint, render_template, flash, redirect, url_for, session, get_flashed_messages
+from flask_login import login_user, logout_user, current_user
 from flask_sqlalchemy.session import Session
 from flask_wtf import FlaskForm
 from sqlalchemy import false
@@ -55,6 +56,7 @@ def login():
                     if not user.mfaenabled:
                         user.mfaenabled = True
                         db.session.commit()
+                    login_user(user)
                     flash('Login Successful', category='success')
                     return redirect(url_for('posts.posts'))
                 if not user.mfaenabled:
@@ -76,9 +78,14 @@ def login():
 
 @accounts_bp.route('/account')
 def account():
-    return render_template('accounts/account.html')
+    return render_template('accounts/account.html', user=current_user)
 
 @accounts_bp.route('/unlock')
 def unlock():
     session["login_attempts"] = 0
     return redirect(url_for('accounts.login'))
+
+@accounts_bp.route('/logout')
+def logout():
+    logout_user()
+    return redirect(url_for('index'))

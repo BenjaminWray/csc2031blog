@@ -1,4 +1,6 @@
 ﻿from flask import Blueprint, render_template, flash, url_for, redirect
+from flask_login import current_user
+
 from config import db, Post
 from posts.forms import PostForm
 from sqlalchemy import desc
@@ -17,7 +19,7 @@ def create():
     form = PostForm()
 
     if form.validate_on_submit():
-        new_post = Post(title=form.title.data, body=form.body.data)
+        new_post = Post(userid=current_user.id, title=form.title.data, body=form.body.data)
 
         db.session.add(new_post)
         db.session.commit()
@@ -38,7 +40,7 @@ def update(id):
     form = PostForm()
 
     if form.validate_on_submit():
-        post_to_update.update(title=form.title.data, body=form.body.data)
+        post_to_update.update(userid=current_user.id, title=form.title.data, body=form.body.data)
 
         flash('Post updated', category='success')
         return redirect(url_for('posts.posts'))

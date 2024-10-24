@@ -11,6 +11,8 @@ from flask_migrate import Migrate
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_qrcode import QRcode
+from flask_login import LoginManager
+from flask_login import UserMixin
 from sqlalchemy import MetaData
 from datetime import datetime
 
@@ -20,6 +22,9 @@ app = Flask(__name__)
 limiter = Limiter(get_remote_address, app=app, default_limits=['500 per day'])
 
 qrcode = QRcode(app)
+
+login_manager = LoginManager()
+login_manager.init_app(app)
 
 # SECRET KEY FOR FLASK FORMS
 app.config['SECRET_KEY'] = secrets.token_hex(16)
@@ -58,15 +63,19 @@ class Post(db.Model):
    body = db.Column(db.Text, nullable=False)
    user = db.relationship('User', back_populates='posts')
 
-   def __init__(self, title, body):
+   def __init__(self, userid, title, body):
+       self.userid = userid
        self.created = datetime.now()
        self.title = title
        self.body = body
+       self.user = User.query.get(userid)
 
-   def update(self, title, body):
+   def update(self, userid, title, body):
+       self.userid = userid
        self.created = datetime.now()
        self.title = title
        self.body = body
+       self.user = User.query.get(userid)
        db.session.commit()
 
 # DATABASE ADMINISTRATOR
@@ -74,7 +83,7 @@ class MainIndexLink(MenuLink):
     def get_url(self):
         return url_for('index')
 
-class User(db.Model):
+class User(db.Model, UserMixin):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -91,6 +100,9 @@ class User(db.Model):
     # MFA information
     mfakey = db.Column(db.String(100), nullable=False, default='')
     mfaenabled = db.Column(db.Boolean, nullable=False, default=False)
+
+    # Authentication status
+    active = db.Column(db.Boolean(), nullable=False, default=True)
 
     # User posts
     posts = db.relationship("Post", order_by=Post.id, back_populates="user")
@@ -113,6 +125,13 @@ class User(db.Model):
     def uri(self):
         return str(pyotp.totp.TOTP(self.mfakey).provisioning_uri(self.email, "csc2031blog"))
 
+    @property
+    def is_active(self):
+        return self.active
+
+@login_manager.user_loader
+def load_user(id):
+    return User.query.get(int(id))
 
 class PostView(ModelView):
     column_display_pk = True

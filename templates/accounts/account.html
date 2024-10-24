@@ -1,5 +1,42 @@
 ﻿{% extends "base.html" %}
 
 {% block content %}
-    <h1>Account</h1>
+    <div class="container">
+        <h1>Account</h1>
+        <div class="p-2 row">
+            <div class="col-2"></div>
+            <div class="col-8">
+                <div class="p-2 bg-light border border-primary" style="text-align: left">
+
+                    <h5><b>Account No:</b> {{ user.id }}</h5>
+                    <h5><b>Email:</b> {{ user.email }}</h5>
+                    <h5><b>First Name:</b> {{ user.firstname }}</h5>
+                    <h5><b>Last Name:</b> {{ user.lastname }}</h5>
+                    <h5><b>Phone No:</b> {{ user.phone }}</h5>
+                    <h5><b>Posts:</b></h5>
+
+                    {% for post in user.posts %}
+                    <div class="card border border-dark">
+
+                        <div class="card-header bg-dark text-white border border-dark">
+                            <h4>{{ post.title }}</h4>
+                            <h6>Author: {{ post.user.firstname }} {{ post.user.lastname }}</h6>
+                            <small>{{ post.created.strftime('%H:%M:%S %d-%m-%Y') }}</small>
+                        </div>
+                        <div class="card-body">{{ post.body }}</div>
+
+                        <div class="card-footer">
+                            <a class="navbar-item" href="{{ url_for('posts.update', id=post.id) }}">Update</a>
+                            <a class="navbar-item" href="{{ url_for('posts.delete', id=post.id) }}">Delete</a>
+                        </div>
+
+                    </div>
+                    <br>
+                    {% endfor %}
+
+                </div>
+            </div>
+            <div class="col-2"></div>
+        </div>
+    </div>
 {% endblock %}
